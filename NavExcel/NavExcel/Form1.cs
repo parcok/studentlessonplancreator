@@ -12,17 +12,21 @@ using Word = Microsoft.Office.Interop.Word;
 using System.Collections;
 using System.IO;
 
-namespace NavExcel {
-    public partial class Form1 : Form {
-        public Form1() {
+namespace NavExcel
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
             InitializeComponent();
         }
         string path = "";
         string template = "";
 
         // Browse for folder
-        private void button1_Click(object sender, EventArgs e) {
-            path = "\\\\central\\ops\\OperationalTraining\\YYZ\\2 Generic Training\\Kevin Testing (Please Don't Touch)\\";
+        private void button1_Click(object sender, EventArgs e)
+        {
+            //path = "\\\\central\\ops\\OperationalTraining\\YYZ\\2 Generic Training\\Kevin Testing (Please Don't Touch)\\";
             //path = "D:\\Temp2\\";
             using (var folderDialog = new FolderBrowserDialog()) {
                 if (folderDialog.ShowDialog() == DialogResult.OK) {
@@ -34,7 +38,8 @@ namespace NavExcel {
         }
 
         // Browse for template
-        private void button3_Click(object sender, EventArgs e) {
+        private void button3_Click(object sender, EventArgs e)
+        {
             using (var fileSelection = new OpenFileDialog()) {
                 fileSelection.Filter = "Word Templates | *.dotm";
                 if (fileSelection.ShowDialog() == DialogResult.OK) {
@@ -44,11 +49,12 @@ namespace NavExcel {
             }
         }
 
-        private void button2_Click(object sender, EventArgs e) {
+        private void button2_Click(object sender, EventArgs e)
+        {
             if (path == "") {
                 MessageBox.Show("Please select the root folder with the browse button.");
-            /*} else if (template == "") {
-                MessageBox.Show("Please select the template you wish to apply.");*/
+            } else if (template == "") {
+                MessageBox.Show("Please select the template you wish to apply.");
             } else {
                 string[] wordFiles = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".doc") || s.EndsWith(".docx")).ToArray();
                 int fileAmount = wordFiles.Length;
@@ -62,40 +68,73 @@ namespace NavExcel {
 
                         wordApp.Visible = false;
                         wordApp.DisplayAlerts = Word.WdAlertLevel.wdAlertsNone;
-                        aDoc = wordApp.Documents.Add(template/*template*/, ref missing/*new template*/, ref missing/*doc type*/, false/*visible*/);
 
                         aDoc = wordApp.Documents.Open(file/*filename*/, false/*convert file prompt*/,
-                                                      false/*readonly*/, false/*recent files*/, ref missing/*read pass*/,
-                                                      ref missing/*read template pass*/, true/*reopen*/, ref missing/*write pass*/,
-                                                      ref missing/*write template pass*/, ref missing/*format*/, ref missing/*encoding*/,
-                                                      false/*visible client*/, ref missing/*repair*/, ref missing/*direction*/,
-                                                      ref missing/*NoEncodingDialog*/, ref missing/*XMLTransform*/);
-                        System.Threading.Thread.Sleep(30000);
-                        //Console.WriteLine(aDoc.Name);
-                        wordApp.Documents.CheckOut(file);
-                        System.Threading.Thread.Sleep(30000);
-                        //aDoc.Activate();
-                        attachTemplate(aDoc, template);
+                              false/*readonly*/, false/*recent files*/, ref missing/*read pass*/,
+                              ref missing/*read template pass*/, true/*reopen*/, ref missing/*write pass*/,
+                              ref missing/*write template pass*/, ref missing/*format*/, ref missing/*encoding*/,
+                              false/*visible client*/, ref missing/*repair*/, ref missing/*direction*/,
+                              ref missing/*NoEncodingDialog*/, ref missing/*XMLTransform*/);
+                        aDoc = wordApp.Documents.Add(file/*template*/, ref missing/*new template*/, ref missing/*doc type*/, false/*visible*/);
 
-                        aDoc.SaveAs(file/*filename*/, ref missing/*file format*/, ref missing/*lock comments*/,
-                                    ref missing/*pass*/, ref missing/*recent files*/, ref missing/*write pass*/,
-                                    false/*read only suggest*/, ref missing/*embed fonts*/, ref missing/*native pic format*/,
-                                    ref missing/*form data*/, ref missing/*AOCE letter*/, ref missing/*encoding*/,
-                                    ref missing/*line breaks*/, ref missing/*substitutions*/, ref missing/*line endigng*/, ref missing/*BiDi marks*/);
-                        if (aDoc.CanCheckin()) {
+
+                        //System.Threading.Thread.Sleep(30000);
+                        //Console.WriteLine(aDoc.Name);
+                        //wordApp.Documents.CheckOut(file);
+                        //System.Threading.Thread.Sleep(30000);
+                        aDoc.Activate();
+                        //attachTemplate(aDoc, template);
+                        // START OF VBA MACRO FROM NAV CANADA
+                        /*wordApp.Selection.Find.Text = "";
+                        wordApp.Selection.Find.Replacement.Text = "";
+                        wordApp.Selection.Find.Forward = true;
+                        wordApp.Selection.Find.Wrap = Word.WdFindWrap.wdFindContinue;
+                        wordApp.Selection.Find.Format = true;
+                        wordApp.Selection.Find.MatchCase = false;
+                        wordApp.Selection.Find.MatchWholeWord = false;
+                        wordApp.Selection.Find.MatchWildcards = false;
+                        wordApp.Selection.Find.MatchSoundsLike = false;
+                        wordApp.Selection.Find.MatchAllWordForms = false;*/
+                        Console.WriteLine("Document name: " + aDoc.Name);
+                        foreach (Word.Style style in aDoc.Styles) {
+                            Console.WriteLine("Style: " + style.NameLocal);
+                            if (style.NameLocal.Length > 4) {
+                                if (style.NameLocal.Substring(0, 5) == "Instr") {
+                                    wordApp.Selection.Find.set_Style(style);
+                                    wordApp.Selection.Find.Execute();
+                                    while (wordApp.Selection.Find.Found) {
+                                        wordApp.Selection.Delete();
+                                        wordApp.Selection.Find.Execute();
+                                    }
+                                }
+                                wordApp.Selection.HomeKey(Unit: Word.WdUnits.wdStory);
+                            }
+                        }
+
+                        // END OF VBA MACRO FROM NAV CANADA
+                        wordApp.ActiveDocument.Save();
+                        //aDoc.SaveAs(file/*filename*/, ref missing/*file format*/, ref missing/*lock comments*/,
+                                //  ref missing/*pass*/, ref missing/*recent files*/, ref missing/*write pass*/,
+                                //false/*read only suggest*/, ref missing/*embed fonts*/, ref missing/*native pic format*/,
+                               //ref missing/*form data*/, ref missing/*AOCE letter*/, ref missing/*encoding*/,
+                              //ref missing/*line breaks*/, ref missing/*substitutions*/, ref missing/*line endigng*/, ref missing/*BiDi marks*/);
+
+                        aDoc.Close(Word.WdSaveOptions.wdSaveChanges, ref missing, ref missing);
+
+                        /*if (aDoc.CanCheckin()) {
                             aDoc.CheckIn();
                         } else {
                             textBox2.Text += "Could not check in " + file + "\r\n";
-                        }
-                        aDoc.Close(Word.WdSaveOptions.wdSaveChanges, ref missing, ref missing);
+                        }*/
 
-                    } catch {
-                        textBox2.Text += "Couldn't open " + file + "\r\n";
+
+                    } catch (Exception err) {
+                        textBox2.Text += "Couldn't open " + file + " " + e + "\r\n";
                     }
                     progressBar1.Value++;
                     progressBar1.Update();
                 }
-                Process[] wordClients = Process.GetProcessesByName("winword");
+                Process[] wordClients = Process.GetProcessesByName("WINWORD");
                 foreach (Process p in wordClients) {
                     p.Kill();
                 }
@@ -107,11 +146,12 @@ namespace NavExcel {
             }
         }
 
-        private static void attachTemplate(Word.Document document, string templateFilePath) {
+        private static void attachTemplate(Word.Document document, string templateFilePath)
+        {
             object oTemplate = (object)templateFilePath;
             document.set_AttachedTemplate(ref oTemplate);
             document.UpdateStyles();
-            MessageBox.Show("Successfully attached template.\r\n"); 
+            MessageBox.Show("Successfully attached template.\r\n");
         }
     }
 }
