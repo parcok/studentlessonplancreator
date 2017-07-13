@@ -56,10 +56,11 @@ namespace NavExcel
             } else if (template == "") {
                 MessageBox.Show("Please select the template you wish to apply.");
             } else {
-                string[] wordFiles = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".doc") || s.EndsWith(".docx")).ToArray();
+                string[] wordFiles = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".doc") || s.EndsWith(".docx") && !s.StartsWith("~")).ToArray();
                 int fileAmount = wordFiles.Length;
                 progressBar1.Maximum = fileAmount;
                 foreach (string file in wordFiles) {
+                    Console.WriteLine("FILE: " + file);
                     try {
 
                         object missing = System.Reflection.Missing.Value;
@@ -85,21 +86,10 @@ namespace NavExcel
                         aDoc.Activate();
                         //attachTemplate(aDoc, template);
                         // START OF VBA MACRO FROM NAV CANADA
-                        /*wordApp.Selection.Find.Text = "";
-                        wordApp.Selection.Find.Replacement.Text = "";
-                        wordApp.Selection.Find.Forward = true;
-                        wordApp.Selection.Find.Wrap = Word.WdFindWrap.wdFindContinue;
-                        wordApp.Selection.Find.Format = true;
-                        wordApp.Selection.Find.MatchCase = false;
-                        wordApp.Selection.Find.MatchWholeWord = false;
-                        wordApp.Selection.Find.MatchWildcards = false;
-                        wordApp.Selection.Find.MatchSoundsLike = false;
-                        wordApp.Selection.Find.MatchAllWordForms = false;*/
-                        Console.WriteLine("Document name: " + aDoc.Name);
                         foreach (Word.Style style in aDoc.Styles) {
-                            Console.WriteLine("Style: " + style.NameLocal);
                             if (style.NameLocal.Length > 4) {
                                 if (style.NameLocal.Substring(0, 5) == "Instr") {
+                                    Console.WriteLine("Removing all of " + style.NameLocal);
                                     wordApp.Selection.Find.set_Style(style);
                                     wordApp.Selection.Find.Execute();
                                     while (wordApp.Selection.Find.Found) {
@@ -110,14 +100,18 @@ namespace NavExcel
                                 wordApp.Selection.HomeKey(Unit: Word.WdUnits.wdStory);
                             }
                         }
-
                         // END OF VBA MACRO FROM NAV CANADA
-                        wordApp.ActiveDocument.Save();
+                        //wordApp.ActiveDocument.Save();
+                        //aDoc.SaveAs(file);
+                        Console.WriteLine("Trying to save as " + file);
+                        aDoc.SaveAs2(file, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault, false, missing, false,
+                            missing, false, missing, missing, missing, missing, missing, missing, missing, missing, missing, missing);
+                        //aDoc.SaveAs(file, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault);
                         //aDoc.SaveAs(file/*filename*/, ref missing/*file format*/, ref missing/*lock comments*/,
-                                //  ref missing/*pass*/, ref missing/*recent files*/, ref missing/*write pass*/,
-                                //false/*read only suggest*/, ref missing/*embed fonts*/, ref missing/*native pic format*/,
-                               //ref missing/*form data*/, ref missing/*AOCE letter*/, ref missing/*encoding*/,
-                              //ref missing/*line breaks*/, ref missing/*substitutions*/, ref missing/*line endigng*/, ref missing/*BiDi marks*/);
+                        //          ref missing/*pass*/, ref missing/*recent files*/, ref missing/*write pass*/,
+                        //        false/*read only suggest*/, ref missing/*embed fonts*/, ref missing/*native pic format*/,
+                        //      ref missing/*form data*/, ref missing/*AOCE letter*/, ref missing/*encoding*/,
+                        //    ref missing/*line breaks*/, ref missing/*substitutions*/, ref missing/*line endigng*/, ref missing/*BiDi marks*/);
 
                         aDoc.Close(Word.WdSaveOptions.wdSaveChanges, ref missing, ref missing);
 
