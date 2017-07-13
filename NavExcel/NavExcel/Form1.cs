@@ -56,7 +56,7 @@ namespace NavExcel
             } else if (template == "") {
                 MessageBox.Show("Please select the template you wish to apply.");
             } else {
-                string[] wordFiles = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".doc") || s.EndsWith(".docx") && !s.StartsWith("~")).ToArray();
+                string[] wordFiles = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Where(s => s.EndsWith(".doc") && !s.StartsWith("~") || s.EndsWith(".docx") && !s.StartsWith("~")).ToArray();
                 int fileAmount = wordFiles.Length;
                 progressBar1.Maximum = fileAmount;
                 foreach (string file in wordFiles) {
@@ -104,8 +104,11 @@ namespace NavExcel
                         //wordApp.ActiveDocument.Save();
                         //aDoc.SaveAs(file);
                         Console.WriteLine("Trying to save as " + file);
-                        aDoc.SaveAs2(file, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault, false, missing, false,
-                            missing, false, missing, missing, missing, missing, missing, missing, missing, missing, missing, missing);
+
+                        //aDoc.Close(Word.WdSaveOptions.wdSaveChanges, ref missing, ref missing);
+                        //aDoc.Save();
+                        aDoc.SaveAs(file + "_STUDENT", Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault);//, false, missing, false,
+                            //missing, false, missing, missing, missing, missing, missing, missing, missing, missing, missing);
                         //aDoc.SaveAs(file, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault);
                         //aDoc.SaveAs(file/*filename*/, ref missing/*file format*/, ref missing/*lock comments*/,
                         //          ref missing/*pass*/, ref missing/*recent files*/, ref missing/*write pass*/,
@@ -113,8 +116,7 @@ namespace NavExcel
                         //      ref missing/*form data*/, ref missing/*AOCE letter*/, ref missing/*encoding*/,
                         //    ref missing/*line breaks*/, ref missing/*substitutions*/, ref missing/*line endigng*/, ref missing/*BiDi marks*/);
 
-                        aDoc.Close(Word.WdSaveOptions.wdSaveChanges, ref missing, ref missing);
-
+                        
                         /*if (aDoc.CanCheckin()) {
                             aDoc.CheckIn();
                         } else {
@@ -122,8 +124,8 @@ namespace NavExcel
                         }*/
 
 
-                    } catch (Exception err) {
-                        textBox2.Text += "Couldn't open " + file + " " + e + "\r\n";
+                    } catch (Exception error) {
+                        textBox2.Text += "Couldn't open " + file + " " + e + "\r\n" + error;
                     }
                     progressBar1.Value++;
                     progressBar1.Update();
