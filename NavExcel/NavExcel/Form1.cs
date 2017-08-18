@@ -25,15 +25,15 @@ namespace NavExcel
         // Browse for folder
         private void button1_Click(object sender, EventArgs e)
         {
-            path = "\\\\central\\ops\\OperationalTraining\\YYZ\\2 Generic Training\\Kevin Testing (Please Don't Touch)\\Temp\\";
-            //path = "D:\\Temp2\\";
+            //path = "\\\\central\\ops\\OperationalTraining\\YYZ\\2 Generic Training\\Kevin Testing (Please Don't Touch)\\Temp\\";
             using (var folderDialog = new FolderBrowserDialog()) {
                 if (folderDialog.ShowDialog() == DialogResult.OK) {
                     path = folderDialog.SelectedPath;
                     textBox1.Text = path;
                 }
             }
-            textBox1.Text = path;
+            //path = "D:\\Temp\\SLP\\Files";
+            //textBox1.Text = path;
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -47,7 +47,7 @@ namespace NavExcel
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
                 foreach (string file in wordFiles) {
-                    Console.WriteLine("FILE: " + file);
+                    //Console.WriteLine("FILE: " + file);
                     try {
 
                         object missing = System.Reflection.Missing.Value;
@@ -73,11 +73,22 @@ namespace NavExcel
                             aDoc.DeleteAllComments();
                         }
 
+                        string instructorPDF = file;
+                        if (file.EndsWith(".doc")) {
+                            instructorPDF = instructorPDF.Replace(".doc", ".pdf");
+                        } else if (instructorPDF.EndsWith(".docm")) {
+                            instructorPDF = instructorPDF.Replace(".docm", ".pdf");
+                        } else {
+                            instructorPDF = instructorPDF.Replace(".docx", ".pdf");
+                        }
+                        //Console.WriteLine("Trying to save as " + instructorPDF);
+                        aDoc.SaveAs(instructorPDF, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatPDF);
+
                         // START OF VBA MACRO FROM NAV CANADA
                         foreach (Word.Style style in aDoc.Styles) {
                             if (style.NameLocal.Length > 4) {
                                 if (style.NameLocal.Substring(0, 5) == "Instr") {
-                                    Console.WriteLine("Removing all of " + style.NameLocal);
+                                    //Console.WriteLine("Removing all of " + style.NameLocal);
                                     wordApp.Selection.Find.set_Style(style);
                                     wordApp.Selection.Find.Execute();
                                     while (wordApp.Selection.Find.Found) {
@@ -118,10 +129,12 @@ namespace NavExcel
                         } else {
                             newPDF = newFile.Replace(".docx", ".pdf");
                         }
-                        Console.WriteLine("Trying to save as " + newFile);
+                        
+                        //Console.WriteLine("Trying to save as " + newFile);
                         aDoc.SaveAs(newFile, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault);
-                        Console.WriteLine("Trying to save as " + newPDF);
+                        //Console.WriteLine("Trying to save as " + newPDF);
                         aDoc.SaveAs(newPDF, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatPDF);
+                        //wordApp.Quit();
                     } catch (Exception error) {
                         textBox2.Text += "Couldn't open " + file + " " + e + "\r\n" + error;
                     }
@@ -133,10 +146,10 @@ namespace NavExcel
                     p.Kill();
                 }
                 watch.Stop();
-                Console.WriteLine("Total runtime: " + watch.ElapsedMilliseconds);
+                //Console.WriteLine("Total runtime: " + watch.ElapsedMilliseconds);
                 if (textBox2.Text == "") {
                     MessageBox.Show("All completed successfully.");
-                    MessageBox.Show("Took a total of " + watch.ElapsedMilliseconds + "ms.");
+                    //MessageBox.Show("Took a total of " + watch.ElapsedMilliseconds + "ms.");
                 } else {
                     MessageBox.Show("Complete. Please verify the template of files listed above.");
                 }
