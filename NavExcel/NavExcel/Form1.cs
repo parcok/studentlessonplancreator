@@ -12,19 +12,22 @@ using Word = Microsoft.Office.Interop.Word;
 using System.Collections;
 using System.IO;
 
-namespace NavExcel
-{
-    public partial class Form1 : Form
-    {
-        public Form1()
-        {
+namespace NavExcel {
+    public partial class Form1 : Form {
+        public Form1() {
             InitializeComponent();
         }
         string path = "";
+        string[] edmontonSpecialties = { "Alberta High", "Arctic High", "Calgary Enroute", "Calgary Terminal", "Calgary Tower", "Edmonton Enroute", "Edmonton Terminal", "North Low" };
+        string[] ganderSpecialties = { "ATOS", "FSS", "High Level Domestic", "IFSS", "Low Level Domestic", "Ocean", "Planner" };
+        string[] monctonSpecialties = { "Generic", "High Level", "Maritime", "Terminal" };
+        string[] montrealSpecialties = { "Capitales", "Est", "Nord", "St-Laurent", "Sud", "Montreal Terminal", "Montreal De Tour" };
+        string[] torontoSpecialties = { "Airports", "East High", "East Low", "North", "North Bay", "Pearson Tower", "TMU", "Terminal", "West High", "West Low" };
+        string[] vancouverSpecialties = { "ATOS", "Airports", "East", "TMU West", "Vancouver High", "Vancouver Terminal", "Vancouver Tower", "Victoria Terminal", "Victoria Tower" };
+        string[] winnipegSpecialties = { "Airports", "East High", "East Low", "North", "West High", "West Low", "Winnipeg Tower" };
 
         // Browse for folder
-        private void button1_Click(object sender, EventArgs e)
-        {
+        private void button1_Click(object sender, EventArgs e) {
             //path = "\\\\central\\ops\\OperationalTraining\\YYZ\\2 Generic Training\\Kevin Testing (Please Don't Touch)\\Temp\\";
             using (var folderDialog = new FolderBrowserDialog()) {
                 if (folderDialog.ShowDialog() == DialogResult.OK) {
@@ -36,8 +39,7 @@ namespace NavExcel
             //textBox1.Text = path;
         }
 
-        private void button2_Click(object sender, EventArgs e)
-        {
+        private void button2_Click(object sender, EventArgs e) {
             if (path == "") {
                 MessageBox.Show("Please select the root folder with the browse button.");
             } else {
@@ -112,7 +114,7 @@ namespace NavExcel
                             ref replaceAll, ref missing, ref missing, ref missing, ref missing);
                         // END OF VBA MACRO FROM NAV CANADA
 
-                        
+
                         // Saving docx
                         string newFile = file.Replace("Instructor", "Student");
                         if (newFile.EndsWith(".docm")) {
@@ -129,7 +131,7 @@ namespace NavExcel
                         } else {
                             newPDF = newFile.Replace(".docx", ".pdf");
                         }
-                        
+
                         //Console.WriteLine("Trying to save as " + newFile);
                         aDoc.SaveAs(newFile, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault);
                         //Console.WriteLine("Trying to save as " + newPDF);
@@ -153,6 +155,67 @@ namespace NavExcel
                 } else {
                     MessageBox.Show("Complete. Please verify the template of files listed above.");
                 }
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e) {
+            comboBox1.SelectedIndex = 0;
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e) {
+            switch (comboBox1.SelectedIndex) {
+                case 1: // Edmonton
+                    comboBox2.Items.Clear();
+                    foreach (string s in edmontonSpecialties) {
+                        comboBox2.Items.Add(s);
+                    }
+                    comboBox2.SelectedIndex = 0;
+                    break;
+                case 2: // Gander
+                    comboBox2.Items.Clear();
+                    foreach (string s in ganderSpecialties) {
+                        comboBox2.Items.Add(s);
+                    }
+                    comboBox2.SelectedIndex = 0;
+                    break;
+                case 3: // Moncton
+                    comboBox2.Items.Clear();
+                    foreach (string s in monctonSpecialties) {
+                        comboBox2.Items.Add(s);
+                    }
+                    comboBox2.SelectedIndex = 0;
+                    break;
+                case 4: // Montreal
+                    comboBox2.Items.Clear();
+                    foreach (string s in montrealSpecialties) {
+                        comboBox2.Items.Add(s);
+                    }
+                    comboBox2.SelectedIndex = 0;
+                    break;
+                case 5: // Toronto
+                    comboBox2.Items.Clear();
+                    foreach (string s in torontoSpecialties) {
+                        comboBox2.Items.Add(s);
+                    }
+                    comboBox2.SelectedIndex = 0;
+                    break;
+                case 6: // Vancouver
+                    comboBox2.Items.Clear();
+                    foreach (string s in vancouverSpecialties) {
+                        comboBox2.Items.Add(s);
+                    }
+                    comboBox2.SelectedIndex = 0;
+                    break;
+                case 7: // Winnipeg
+                    comboBox2.Items.Clear();
+                    foreach (string s in winnipegSpecialties) {
+                        comboBox2.Items.Add(s);
+                    }
+                    comboBox2.SelectedIndex = 0;
+                    break;
+                default:
+                    comboBox2.Items.Clear();
+                    break;
             }
         }
     }
