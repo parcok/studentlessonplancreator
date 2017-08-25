@@ -46,6 +46,7 @@ namespace NavExcel {
             if (path == "") {
                 MessageBox.Show("Please select the root folder with the browse button.");
             } else {
+                button2.Text = "Running...";
                 string[] wordFiles = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Where(s => s.EndsWith("Instructor.doc") && !s.StartsWith("~") || s.EndsWith("Instructor.docx") && !s.StartsWith("~") || s.EndsWith("Instructor.docm") && !s.StartsWith("~")).ToArray();
                 int fileAmount = wordFiles.Length;
                 progressBar1.Maximum = fileAmount;
@@ -151,50 +152,42 @@ namespace NavExcel {
                 foreach (Process p in wordClients) {
                     p.Kill();
                 }
-                //watch.Stop();
-                //Console.WriteLine("Total runtime: " + watch.ElapsedMilliseconds);
                 if (textBox2.Text == "") {
                     if (checkBox1.Checked) {
                         MessageBox.Show("All completed successfully. Now uploading to dropbox.");
                     } else {
                         MessageBox.Show("All completed successfully.");
                     }
-                    //MessageBox.Show("Took a total of " + watch.ElapsedMilliseconds + "ms.");
                 } else {
                     MessageBox.Show("Complete. Please verify the template of files listed above.");
                 }
                 if (checkBox1.Checked) {
+                    button2.Text = "Uploading...";
                     progressBar1.Value = 0;
                     progressBar1.Maximum = dropboxPDFs.Count;
-                    Stopwatch sw = new Stopwatch();
-                    sw.Start();
                     foreach (string s in dropboxPDFs) {
+                        string folder = "/" + comboBox2.Text;
+                        string[] filenamesplit = s.Split('\\');
+                        string filename = filenamesplit[filenamesplit.Length - 1];
+                        var content = System.IO.File.ReadAllBytes(s);
                         try {
-                            Console.WriteLine("Now uploading: " + s);
-                            string folder = "/" + comboBox2.Text;
-                            string[] filenamesplit = s.Split('\\');
-                            string filename = filenamesplit[filenamesplit.Length - 1];
-                            var content = System.IO.File.ReadAllBytes(s);
-                            Form1.Upload(dropboxClient, folder, filename, content).Wait();
-                            //progressBar1.Value++;
-                            //progressBar1.Update();
-                        } catch (Exception err) {
-                            Console.WriteLine("Could not upload. " + err);
-                        } finally {
-                            Console.WriteLine("Completed uploading: " + s);
+                            Form1.UploadAsync(dropboxClient, folder, filename, content).Wait();
+                            progressBar1.Value++;
+                            progressBar1.Update();
+                        } catch {
+                            textBox2.Text += "Could not upload. " + filename + "\r\n";
                         }
                     }
-                    sw.Stop();
-                    MessageBox.Show("Total time elapsed: " + sw.ElapsedMilliseconds + "ms.");
                 }
+                button2.Text = "Start";
             }
         }
 
-        static async Task Upload(DropboxClient dbx, string folder, string file, byte[] content) {
-            using (var mem = new MemoryStream(content)) {
-                Console.WriteLine("Uploading....");
-                var updated = await dbx.Files.UploadAsync(folder + "/" + file, Dropbox.Api.Files.WriteMode.Overwrite.Instance ,body: mem);
-                Console.WriteLine("Saved {0}/{1} rev {2}", folder, file, updated.Rev);
+        static async Task UploadAsync(DropboxClient dbx, string folder, string file, byte[] content)
+        {
+            using (var mem = new MemoryStream(content))
+            {
+                var updated = await dbx.Files.UploadAsync(folder + "/" + file, Dropbox.Api.Files.WriteMode.Overwrite.Instance, body: mem).ConfigureAwait(false);
             }
         }
 
