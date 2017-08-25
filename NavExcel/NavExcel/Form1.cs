@@ -17,8 +17,7 @@ namespace NavExcel {
     public partial class Form1 : Form {
         public Form1() {
             InitializeComponent();
-            if (System.IO.File.Exists(Environment.CurrentDirectory + "/token.txt"))
-            {
+            if (System.IO.File.Exists(Environment.CurrentDirectory + "/token.txt")) {
                 token = File.ReadAllText(Environment.CurrentDirectory + "/token.txt");
             }
         }
@@ -186,18 +185,15 @@ namespace NavExcel {
                         }
                     }
                     MessageBox.Show("Completed uploading files.");
-                } else if (checkBox1.Checked && token == "")
-                {
+                } else if (checkBox1.Checked && token == "") {
                     MessageBox.Show("Please put your token in a file named token.txt and restart the program.");
                 }
                 button2.Text = "Start";
             }
         }
 
-        static async Task UploadAsync(DropboxClient dbx, string folder, string file, byte[] content)
-        {
-            using (var mem = new MemoryStream(content))
-            {
+        static async Task UploadAsync(DropboxClient dbx, string folder, string file, byte[] content) {
+            using (var mem = new MemoryStream(content)) {
                 var updated = await dbx.Files.UploadAsync(folder + "/" + file, Dropbox.Api.Files.WriteMode.Overwrite.Instance, body: mem).ConfigureAwait(false);
             }
         }
