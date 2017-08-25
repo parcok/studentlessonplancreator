@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Word = Microsoft.Office.Interop.Word;
 using System.Collections;
 using System.IO;
+using Dropbox.Api;
 
 namespace NavExcel {
     public partial class Form1 : Form {
@@ -18,6 +19,7 @@ namespace NavExcel {
             InitializeComponent();
         }
         string path = "";
+        ArrayList dropboxPDFs = new ArrayList();
         string[] edmontonSpecialties = { "Alberta High", "Arctic High", "Calgary Enroute", "Calgary Terminal", "Calgary Tower", "Edmonton Enroute", "Edmonton Terminal", "North Low" };
         string[] ganderSpecialties = { "ATOS", "FSS", "High Level Domestic", "IFSS", "Low Level Domestic", "Ocean", "Planner" };
         string[] monctonSpecialties = { "Generic", "High Level", "Maritime", "Terminal" };
@@ -46,8 +48,8 @@ namespace NavExcel {
                 string[] wordFiles = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Where(s => s.EndsWith("Instructor.doc") && !s.StartsWith("~") || s.EndsWith("Instructor.docx") && !s.StartsWith("~") || s.EndsWith("Instructor.docm") && !s.StartsWith("~")).ToArray();
                 int fileAmount = wordFiles.Length;
                 progressBar1.Maximum = fileAmount;
-                Stopwatch watch = new Stopwatch();
-                watch.Start();
+                //Stopwatch watch = new Stopwatch();
+                //watch.Start();
                 foreach (string file in wordFiles) {
                     //Console.WriteLine("FILE: " + file);
                     try {
@@ -136,6 +138,7 @@ namespace NavExcel {
                         aDoc.SaveAs(newFile, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault);
                         //Console.WriteLine("Trying to save as " + newPDF);
                         aDoc.SaveAs(newPDF, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatPDF);
+                        dropboxPDFs.Add(newPDF);
                         //wordApp.Quit();
                     } catch (Exception error) {
                         textBox2.Text += "Couldn't open " + file + " " + e + "\r\n" + error;
@@ -147,14 +150,43 @@ namespace NavExcel {
                 foreach (Process p in wordClients) {
                     p.Kill();
                 }
-                watch.Stop();
+                //watch.Stop();
                 //Console.WriteLine("Total runtime: " + watch.ElapsedMilliseconds);
                 if (textBox2.Text == "") {
-                    MessageBox.Show("All completed successfully.");
+                    if (checkBox1.Checked) {
+                        MessageBox.Show("All completed successfully. Now uploading to dropbox.");
+                    } else {
+                        MessageBox.Show("All completed successfully.");
+                    }
                     //MessageBox.Show("Took a total of " + watch.ElapsedMilliseconds + "ms.");
                 } else {
                     MessageBox.Show("Complete. Please verify the template of files listed above.");
                 }
+                if (checkBox1.Checked) {
+                    progressBar1.Maximum = dropboxPDFs.Count;
+                    foreach (string s in dropboxPDFs) {
+                        try {
+                            DropboxClient client = new DropboxClient("DxygmoJaHiAAAAAAAAAAcXASnUbTgckkLVggxoZTxqH7GQR9OeQC1MdKLUIgIhH-");
+                            string folder = comboBox2.Text;
+                            string[] filenamesplit = s.Split('/');
+                            string filename = filenamesplit[filenamesplit.Length - 1];
+                            var content = System.IO.File.ReadAllBytes(s);
+                            //var uploadTask = Task.Run(Program.Upload(client, folder, file, content));
+                            Form1.Upload(client, folder, filename, content).Wait();
+                            progressBar1.Value++;
+                            progressBar1.Update();
+                        } catch (Exception err) {
+                            MessageBox.Show("Could not upload. " + err);
+                        }
+                    }
+                }
+            }
+        }
+
+        static async Task Upload(DropboxClient dbx, string folder, string file, byte[] content) {
+            using (var mem = new MemoryStream(content)) {
+                var updated = await dbx.Files.UploadAsync(folder + "/" + file, body: mem);
+                Console.WriteLine("Saved {0}/{1} rev {2}", folder, file, updated.Rev);
             }
         }
 
