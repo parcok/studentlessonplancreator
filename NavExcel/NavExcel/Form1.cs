@@ -19,6 +19,7 @@ namespace NavExcel {
             InitializeComponent();
         }
         string path = "";
+        public static DropboxClient dropboxClient = new DropboxClient("DxygmoJaHiAAAAAAAAAAcXASnUbTgckkLVggxoZTxqH7GQR9OeQC1MdKLUIgIhH-");
         ArrayList dropboxPDFs = new ArrayList();
         string[] edmontonSpecialties = { "Alberta High", "Arctic High", "Calgary Enroute", "Calgary Terminal", "Calgary Tower", "Edmonton Enroute", "Edmonton Terminal", "North Low" };
         string[] ganderSpecialties = { "ATOS", "FSS", "High Level Domestic", "IFSS", "Low Level Domestic", "Ocean", "Planner" };
@@ -135,7 +136,7 @@ namespace NavExcel {
                         }
 
                         //Console.WriteLine("Trying to save as " + newFile);
-                        aDoc.SaveAs(newFile, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault);
+                        //aDoc.SaveAs(newFile, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatDocumentDefault);
                         //Console.WriteLine("Trying to save as " + newPDF);
                         aDoc.SaveAs(newPDF, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatPDF);
                         dropboxPDFs.Add(newPDF);
@@ -163,29 +164,36 @@ namespace NavExcel {
                     MessageBox.Show("Complete. Please verify the template of files listed above.");
                 }
                 if (checkBox1.Checked) {
+                    progressBar1.Value = 0;
                     progressBar1.Maximum = dropboxPDFs.Count;
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
                     foreach (string s in dropboxPDFs) {
                         try {
-                            DropboxClient client = new DropboxClient("DxygmoJaHiAAAAAAAAAAcXASnUbTgckkLVggxoZTxqH7GQR9OeQC1MdKLUIgIhH-");
-                            string folder = comboBox2.Text;
-                            string[] filenamesplit = s.Split('/');
+                            Console.WriteLine("Now uploading: " + s);
+                            string folder = "/" + comboBox2.Text;
+                            string[] filenamesplit = s.Split('\\');
                             string filename = filenamesplit[filenamesplit.Length - 1];
                             var content = System.IO.File.ReadAllBytes(s);
-                            //var uploadTask = Task.Run(Program.Upload(client, folder, file, content));
-                            Form1.Upload(client, folder, filename, content).Wait();
-                            progressBar1.Value++;
-                            progressBar1.Update();
+                            Form1.Upload(dropboxClient, folder, filename, content).Wait();
+                            //progressBar1.Value++;
+                            //progressBar1.Update();
                         } catch (Exception err) {
-                            MessageBox.Show("Could not upload. " + err);
+                            Console.WriteLine("Could not upload. " + err);
+                        } finally {
+                            Console.WriteLine("Completed uploading: " + s);
                         }
                     }
+                    sw.Stop();
+                    MessageBox.Show("Total time elapsed: " + sw.ElapsedMilliseconds + "ms.");
                 }
             }
         }
 
         static async Task Upload(DropboxClient dbx, string folder, string file, byte[] content) {
             using (var mem = new MemoryStream(content)) {
-                var updated = await dbx.Files.UploadAsync(folder + "/" + file, body: mem);
+                Console.WriteLine("Uploading....");
+                var updated = await dbx.Files.UploadAsync(folder + "/" + file, Dropbox.Api.Files.WriteMode.Overwrite.Instance ,body: mem);
                 Console.WriteLine("Saved {0}/{1} rev {2}", folder, file, updated.Rev);
             }
         }
