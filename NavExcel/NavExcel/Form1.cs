@@ -23,7 +23,6 @@ namespace NavExcel {
         }
         string token = "";
         string path = "";
-        //public static DropboxClient dropboxClient = new DropboxClient("DxygmoJaHiAAAAAAAAAAcXASnUbTgckkLVggxoZTxqH7GQR9OeQC1MdKLUIgIhH-");
         ArrayList dropboxPDFs = new ArrayList();
         string[] edmontonSpecialties = { "Alberta High", "Arctic High", "Calgary Enroute", "Calgary Terminal", "Calgary Tower", "Edmonton Enroute", "Edmonton Terminal", "North Low" };
         string[] ganderSpecialties = { "ATOS", "FSS", "High Level Domestic", "IFSS", "Low Level Domestic", "Ocean", "Planner" };
@@ -35,15 +34,12 @@ namespace NavExcel {
 
         // Browse for folder
         private void button1_Click(object sender, EventArgs e) {
-            //path = "\\\\central\\ops\\OperationalTraining\\YYZ\\2 Generic Training\\Kevin Testing (Please Don't Touch)\\Temp\\";
             using (var folderDialog = new FolderBrowserDialog()) {
                 if (folderDialog.ShowDialog() == DialogResult.OK) {
                     path = folderDialog.SelectedPath;
                     textBox1.Text = path;
                 }
             }
-            //path = "D:\\Temp\\SLP\\Files";
-            //textBox1.Text = path;
         }
 
         private void button2_Click(object sender, EventArgs e) {
@@ -54,10 +50,7 @@ namespace NavExcel {
                 string[] wordFiles = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Where(s => s.EndsWith("Instructor.doc") && !s.StartsWith("~") || s.EndsWith("Instructor.docx") && !s.StartsWith("~") || s.EndsWith("Instructor.docm") && !s.StartsWith("~")).ToArray();
                 int fileAmount = wordFiles.Length;
                 progressBar1.Maximum = fileAmount;
-                //Stopwatch watch = new Stopwatch();
-                //watch.Start();
                 foreach (string file in wordFiles) {
-                    //Console.WriteLine("FILE: " + file);
                     try {
 
                         object missing = System.Reflection.Missing.Value;
@@ -145,7 +138,6 @@ namespace NavExcel {
                         //Console.WriteLine("Trying to save as " + newPDF);
                         aDoc.SaveAs(newPDF, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatPDF);
                         dropboxPDFs.Add(newPDF);
-                        //wordApp.Quit();
                     } catch (Exception error) {
                         textBox2.Text += "Couldn't open " + file + " " + e + "\r\n" + error;
                     }
@@ -166,7 +158,6 @@ namespace NavExcel {
                     MessageBox.Show("Complete. Please verify the template of files listed above.");
                 }
                 if (checkBox1.Checked && token != "") {
-                    Console.WriteLine("Token: " + token);
                     button2.Text = "Uploading...";
                     progressBar1.Value = 0;
                     progressBar1.Maximum = dropboxPDFs.Count;
