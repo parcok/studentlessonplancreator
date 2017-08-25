@@ -17,9 +17,14 @@ namespace NavExcel {
     public partial class Form1 : Form {
         public Form1() {
             InitializeComponent();
+            if (System.IO.File.Exists(Environment.CurrentDirectory + "/token.txt"))
+            {
+                token = File.ReadAllText(Environment.CurrentDirectory + "/token.txt");
+            }
         }
+        string token = "";
         string path = "";
-        public static DropboxClient dropboxClient = new DropboxClient("DxygmoJaHiAAAAAAAAAAcXASnUbTgckkLVggxoZTxqH7GQR9OeQC1MdKLUIgIhH-");
+        //public static DropboxClient dropboxClient = new DropboxClient("DxygmoJaHiAAAAAAAAAAcXASnUbTgckkLVggxoZTxqH7GQR9OeQC1MdKLUIgIhH-");
         ArrayList dropboxPDFs = new ArrayList();
         string[] edmontonSpecialties = { "Alberta High", "Arctic High", "Calgary Enroute", "Calgary Terminal", "Calgary Tower", "Edmonton Enroute", "Edmonton Terminal", "North Low" };
         string[] ganderSpecialties = { "ATOS", "FSS", "High Level Domestic", "IFSS", "Low Level Domestic", "Ocean", "Planner" };
@@ -161,11 +166,13 @@ namespace NavExcel {
                 } else {
                     MessageBox.Show("Complete. Please verify the template of files listed above.");
                 }
-                if (checkBox1.Checked) {
+                if (checkBox1.Checked && token != "") {
+                    Console.WriteLine("Token: " + token);
                     button2.Text = "Uploading...";
                     progressBar1.Value = 0;
                     progressBar1.Maximum = dropboxPDFs.Count;
                     foreach (string s in dropboxPDFs) {
+                        DropboxClient dropboxClient = new DropboxClient(token);
                         string folder = "/" + comboBox2.Text;
                         string[] filenamesplit = s.Split('\\');
                         string filename = filenamesplit[filenamesplit.Length - 1];
@@ -178,6 +185,10 @@ namespace NavExcel {
                             textBox2.Text += "Could not upload. " + filename + "\r\n";
                         }
                     }
+                    MessageBox.Show("Completed uploading files.");
+                } else if (checkBox1.Checked && token == "")
+                {
+                    MessageBox.Show("Please put your token in a file named token.txt and restart the program.");
                 }
                 button2.Text = "Start";
             }
