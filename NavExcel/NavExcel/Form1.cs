@@ -115,6 +115,12 @@ namespace NavExcel {
                             ref replaceAll, ref missing, ref missing, ref missing, ref missing);
                         // END OF VBA MACRO FROM NAV CANADA
 
+                        // Update the fields (table of contents and such)
+                        foreach (Microsoft.Office.Interop.Word.Field field in aDoc.Fields) {
+                            field.Update();
+                        }
+                        // End of updating fields
+
 
                         // Saving docx
                         string newFile = file.Replace("Instructor", "Student");
